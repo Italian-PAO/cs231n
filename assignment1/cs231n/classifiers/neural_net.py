@@ -80,16 +80,21 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        h = np.dot(X, W1)
+        h = np.clip(h, 0, None)
+        h += b1
+
+        scores = np.dot(h, W2)
+        scores += b2
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # If the targets are not given then jump out, we're done
         if y is None:
-            return scores
+          return scores
 
         # Compute the loss
-        loss = None
+        loss = 0.0
         #############################################################################
         # TODO: Finish the forward pass, and compute the loss. This should include  #
         # both the data loss and L2 regularization for W1 and W2. Store the result  #
@@ -98,7 +103,9 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        total_exp = np.sum(np.exp(scores), axis = 1)
+        loss += np.mean(-np.log(np.exp(scores[np.arange(N), y]) / total_exp))
+        loss += reg * (np.sum(W1**2) + np.sum(W2**2))
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -111,7 +118,16 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dsoftmax = np.exp(scores) / total_exp.reshape(-1, 1)
+        dsoftmax[np.arange(N), y] -= 1
+        dsoftmax /= N
+        grads['W2'] = np.dot(h.T, dsoftmax) + 2 * reg * W2
+        grads['b2'] = np.sum(dsoftmax, axis = 0)
+        dh = np.dot(dsoftmax, W2.T)
+        grads['b1'] = np.sum(dh, axis = 0)
+        dh[h == 0] = 0
+        grads['W1'] = np.dot(X.T, dh) + 2 * reg * W1
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -119,7 +135,7 @@ class TwoLayerNet(object):
 
     def train(self, X, y, X_val, y_val,
               learning_rate=1e-3, learning_rate_decay=0.95,
-              reg=5e-6, num_iters=100,
+              reg=5e-6, num_iters=100,mu=0.9, mu_increase=1.0,
               batch_size=200, verbose=False):
         """
         Train this neural network using stochastic gradient descent.
@@ -145,6 +161,8 @@ class TwoLayerNet(object):
         loss_history = []
         train_acc_history = []
         val_acc_history = []
+        v_W2, v_b2 = 0.0, 0.0
+        v_W1, v_b1 = 0.0, 0.0
 
         for it in range(num_iters):
             X_batch = None
@@ -156,7 +174,9 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            indexs = np.random.choice(range(num_train), batch_size, replace=True)
+            X_batch = X[indexs]
+            y_batch = y[indexs]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -172,7 +192,8 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            pass
+            for key in self.params:
+              self.params[key] -= learning_rate * grads[key]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -218,7 +239,17 @@ class TwoLayerNet(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        W1, b1 = self.params['W1'], self.params['b1']
+        W2, b2 = self.params['W2'], self.params['b2']
+
+        h = np.dot(X, W1)
+        h = np.clip(h, 0, None)
+        h += b1
+
+        scores = np.dot(h, W2)
+        scores += b2
+
+        y_pred = np.argmax(scores, axis = 1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
