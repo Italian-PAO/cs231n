@@ -51,7 +51,7 @@ class ThreeLayerConvNet(object):
         # network. Weights should be initialized from a Gaussian centered at 0.0   #
         # with standard deviation equal to weight_scale; biases should be          #
         # initialized to zero. All weights and biases should be stored in the      #
-        #  dictionary self.params. Store weights and biases for the convolutional  #
+        # dictionary self.params. Store weights and biases for the convolutional  #
         # layer using the keys 'W1' and 'b1'; use keys 'W2' and 'b2' for the       #
         # weights and biases of the hidden affine layer, and keys 'W3' and 'b3'    #
         # for the weights and biases of the output affine layer.                   #
@@ -63,7 +63,18 @@ class ThreeLayerConvNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        pad = (filter_size - 1) // 2
+        h_conv = 1 + (input_dim[1] + 2 * pad - filter_size) / 1
+        w_conv = 1 + (input_dim[2] + 2 * pad - filter_size) / 1
+        h_pool = int(1 + (h_conv - 2) / 2)
+        w_pool = int(1 + (w_conv - 2) / 2)
+
+        self.params['W1'] = np.random.normal(loc=0.0, scale=weight_scale, size=(num_filters, input_dim[0], filter_size, filter_size))
+        self.params['b1'] = np.zeros(num_filters)
+        self.params['W2'] = np.random.normal(loc=0.0, scale=weight_scale, size=(num_filters * h_pool * w_pool, hidden_dim))
+        self.params['b2'] = np.zeros(hidden_dim)
+        self.params['W3'] = np.random.normal(loc=0.0, scale=weight_scale, size=(hidden_dim, num_classes))
+        self.params['b3'] = np.zeros(num_classes)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -91,7 +102,7 @@ class ThreeLayerConvNet(object):
         # pass pool_param to the forward pass for the max-pooling layer
         pool_param = {"pool_height": 2, "pool_width": 2, "stride": 2}
 
-        scores = None
+        scores = X
         ############################################################################
         # TODO: Implement the forward pass for the three-layer convolutional net,  #
         # computing the class scores for X and storing them in the scores          #
@@ -102,7 +113,14 @@ class ThreeLayerConvNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        caches = []
+
+        scores, cache = conv_relu_pool_forward(scores, W1, b1, conv_param, pool_param)
+        caches.append(cache)
+        scores, cache = affine_relu_forward(scores, W2, b2)
+        caches.append(cache)
+        scores, cache = affine_forward(scores, W3, b3)
+        caches.append(cache)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -125,7 +143,19 @@ class ThreeLayerConvNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        loss, dx = softmax_loss(scores, y)
+        
+        loss += 0.5 * self.reg * np.sum(W1 ** 2)
+        loss += 0.5 * self.reg * np.sum(W2 ** 2)
+        loss += 0.5 * self.reg * np.sum(W3 ** 2)
+
+        dx, grads['W3'], grads['b3'] = affine_backward(dx, caches.pop())
+        dx, grads['W2'], grads['b2'] = affine_relu_backward(dx, caches.pop())
+        dx, grads['W1'], grads['b1'] = conv_relu_pool_backward(dx, caches.pop())
+
+        grads['W3'] += self.reg * W3
+        grads['W2'] += self.reg * W2
+        grads['W1'] += self.reg * W1
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################

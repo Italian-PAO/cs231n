@@ -473,6 +473,7 @@ def dropout_forward(x, dropout_param):
 
     mask = None
     out = None
+    N, D = x.shape
 
     if mode == "train":
         #######################################################################
@@ -481,7 +482,9 @@ def dropout_forward(x, dropout_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        rand = np.random.rand(N, D)
+        mask = (rand < p) / p
+        out = x * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -493,7 +496,7 @@ def dropout_forward(x, dropout_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        out = x
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -524,7 +527,7 @@ def dropout_backward(dout, cache):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dx = dout * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -773,7 +776,9 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    out, cache = batchnorm_forward(x.transpose(0, 2, 3, 1).reshape(-1, C), gamma, beta, bn_param)
+    out = out.reshape(N, H, W, C).transpose(0, 3, 1, 2)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -807,7 +812,10 @@ def spatial_batchnorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = dout.shape
+    dx, dgamma, dbeta = batchnorm_backward(dout.transpose(0, 2, 3, 1).reshape(-1, C), cache)
+    dx = dx.reshape(N, H, W, C).transpose(0, 3, 1, 2)
+    #dgamma = 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -847,7 +855,17 @@ def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+
+    x = x.reshape((N, G, C // G, H, W))
+    mu = np.mean(x, axis = (2, 3, 4), keepdims = True)
+    var = np.var(x, axis = (2, 3, 4), keepdims = True)
+    x_norm = (x - mu) / np.sqrt(var + eps)
+
+    x_norm_reshape = x_norm.reshape((N, C, H, W))
+    out = x_norm_reshape * gamma + beta
+
+    cache = (x, gamma, beta, G, eps, mu, var, x_norm)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -877,7 +895,21 @@ def spatial_groupnorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = dout.shape
+
+    x, gamma, beta, G, eps, mu, var, x_norm = cache
+    dgamma = np.sum(dout * x_norm.reshape(dout.shape), axis = (0, 2, 3), keepdims = True)
+    dbeta = np.sum(dout, axis = (0, 2, 3), keepdims = True)
+
+    dx_norm_reshape = dout * gamma
+    dx_norm = dx_norm_reshape.reshape((N, G, C // G, H, W))
+
+    t = H * W * C // G
+    dsigma = -0.5 * ((var.squeeze() + eps) ** (-1.5)) * np.sum(dx_norm * (x - mu), axis = (2, 3, 4))
+    dmu = -np.sum(dx_norm / np.sqrt(var + eps), axis=(2, 3, 4)) - 2.0 * dsigma * np.sum(x - mu, axis=(2, 3, 4)) / t
+    dx = dx_norm / np.sqrt(var + eps) + dsigma.reshape(N, G, 1, 1, 1) * 2.0 * (x - mu) / t + dmu.reshape(N, G, 1, 1, 1) / t
+    
+    dx = dx.reshape(N, C, H, W)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################

@@ -299,8 +299,13 @@ class FullyConnectedNet(object):
               scores, cache = affine_forward(scores, W, b)
             else:
               scores, cache = affine_ln_relu_forward(scores, W, b, self.params['gamma' + str(i + 1)], self.params['beta' + str(i + 1)], self.bn_params[i])
+          else:
+            cache = None
           caches.append(cache)
-      
+          if self.use_dropout and i != self.num_layers - 1:
+            scores, cache = dropout_forward(scores, self.dropout_param)
+            caches.append(cache)
+
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -333,27 +338,27 @@ class FullyConnectedNet(object):
         for i in range(self.num_layers):
           W_name = 'W' + str(self.num_layers - i)
           b_name = 'b' + str(self.num_layers - i)
+          gamma_name = 'gamma' + str(self.num_layers - i)
+          beta_name = 'beta' + str(self.num_layers - i)
+          if self.use_dropout and i > 0:
+            dx = dropout_backward(dx, caches.pop())
           if self.normalization == None:
             if i == 0:
-              dx, grads[W_name], grads[b_name] = affine_backward(dx, caches[self.num_layers - i - 1])
+              dx, grads[W_name], grads[b_name] = affine_backward(dx, caches.pop())
             else:
-              dx, grads[W_name], grads[b_name] = affine_relu_backward(dx, caches[self.num_layers - i - 1])
+              dx, grads[W_name], grads[b_name] = affine_relu_backward(dx, caches.pop())
           elif self.normalization == "batchnorm":
             if i == 0:
-              dx, grads[W_name], grads[b_name] = affine_backward(dx, caches[self.num_layers - i - 1])
+              dx, grads[W_name], grads[b_name] = affine_backward(dx, caches.pop())
             else:
-              gamma_name = 'gamma' + str(self.num_layers - i)
-              beta_name = 'beta' + str(self.num_layers - i)
-              dx, grads[W_name], grads[b_name], grads[gamma_name], grads[beta_name] = affine_bn_relu_backward(dx, caches[self.num_layers - i - 1])
+              dx, grads[W_name], grads[b_name], grads[gamma_name], grads[beta_name] = affine_bn_relu_backward(dx, caches.pop())
           elif self.normalization == "layernorm":
             if i == 0:
-              dx, grads[W_name], grads[b_name] = affine_backward(dx, caches[self.num_layers - i - 1])
+              dx, grads[W_name], grads[b_name] = affine_backward(dx, caches.pop())
             else:
-              gamma_name = 'gamma' + str(self.num_layers - i)
-              beta_name = 'beta' + str(self.num_layers - i)
-              dx, grads[W_name], grads[b_name], grads[gamma_name], grads[beta_name] = affine_ln_relu_backward(dx, caches[self.num_layers - i - 1])
+              dx, grads[W_name], grads[b_name], grads[gamma_name], grads[beta_name] = affine_ln_relu_backward(dx, caches.pop())
 
-          grads[W_name] += self.reg * self.params[W_name]  
+          grads[W_name] += self.reg * self.params[W_name]
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
