@@ -1,8 +1,8 @@
 # Supporting programming exercises for the CS231N course
 
-**Assignment1 Finished**
++ **Assignment1 Finished**
 
-**Assignment2 Finished**
++ **Assignment2 Finished**
 
 ---
 
