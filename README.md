@@ -1,28 +1,28 @@
 # Programming Exercises for CS231N
 
-**Assignment1 Finished**
+## Assignment1 Finished
 
-+ k-Nearest Neighbor classifier
++ **k-Nearest Neighbor classifier**
 
-+ Support Vector Machine
++ **Support Vector Machine**
 
-+ Softmax classifier
++ **Softmax classifier**
 
-+ Two-Layer Neural Network
++ **Two-Layer Neural Network**
 
-+ Image Features
++ **Image Features**
 
-**Assignment2 Finished**
+## Assignment2 Finished
 
-+ Fully-connected Neural Network
++ **Fully-connected Neural Network**
 
-+ Batch Normalization
++ **Batch Normalization**
 
-+ Dropout
++ **Dropout**
 
-+ Convolutional Networks
++ **Convolutional Networks**
 
-+ PyTorch / TensorFlow on CIFAR-10
++ **PyTorch / TensorFlow on CIFAR-10**
 
 ---
 
