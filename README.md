@@ -1,6 +1,6 @@
 # Programming Exercises for CS231N
 
-## Assignment1 Finished
+## Assignment1 Finished (ALL FINISHED)
 
 + **k-Nearest Neighbor classifier**
 
@@ -12,7 +12,7 @@
 
 + **Image Features**
 
-## Assignment2 Finished
+## Assignment2 Finished (ALL FINISHED)
 
 + **Fully-connected Neural Network**
 
@@ -23,6 +23,8 @@
 + **Convolutional Networks**
 
 + **PyTorch / TensorFlow on CIFAR-10**
+
+## Assignment3 Finished (ONDING)
 
 ---
 
