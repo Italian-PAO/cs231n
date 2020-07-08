@@ -151,7 +151,22 @@ class CaptioningRNN(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        init_hidden_state = features @ W_proj + b_proj
+        in_embedding, cache_embedding = word_embedding_forward(captions_in, W_embed)
+        if self.cell_type == "rnn":
+          hidden_state_vector, cache_rnn = rnn_forward(in_embedding, init_hidden_state, Wx, Wh, b)
+        elif self.cell_type == "lstm":
+          hidden_state_vector, cache_lstm = lstm_forward(in_embedding, init_hidden_state, Wx, Wh, b)
+        scores, cache_affine = temporal_affine_forward(hidden_state_vector, W_vocab, b_vocab)
+        loss, dx = temporal_softmax_loss(scores, captions_out, mask, verbose=False)
+        dx, grads['W_vocab'], grads['b_vocab'] = temporal_affine_backward(dx, cache_affine)
+        if self.cell_type == "rnn":
+          dx, dh0, grads['Wx'], grads['Wh'], grads['b'] = rnn_backward(dx, cache_rnn)
+        elif self.cell_type == "lstm":
+          dx, dh0, grads['Wx'], grads['Wh'], grads['b'] = lstm_backward(dx, cache_lstm)
+        grads['W_embed'] = word_embedding_backward(dx, cache_embedding)
+        grads['W_proj'] = features.T @ dh0
+        grads['b_proj'] = np.sum(dh0, axis = 0)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -219,7 +234,20 @@ class CaptioningRNN(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        h0 = features @ W_proj + b_proj
+
+        prev_h = h0
+        prev_c = 0
+        captions[:, 0] = self._start
+        for i in range(max_length):
+          in_embedding, _ = word_embedding_forward(captions[:, i], W_embed)
+          if self.cell_type == "rnn":
+            prev_h, _ = rnn_step_forward(in_embedding, prev_h, Wx, Wh, b)
+          elif self.cell_type == "lstm":
+            prev_h, prev_c, _ = lstm_step_forward(in_embedding, prev_h, prev_c, Wx, Wh, b)
+          N, D = prev_h.shape
+          scores, _ = temporal_affine_forward(prev_h.reshape(N, 1, D), W_vocab, b_vocab)
+          captions[:, i] = np.argmax(np.squeeze(scores), axis = 1)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
