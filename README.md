@@ -26,6 +26,10 @@
 
 ## Assignment3 Finished (ONDING)
 
++ **Vanilla RNN**
+
++ **LSTM**
+
 ---
 
 >The raw code is from https://github.com/cs231n/cs231n.github.io
