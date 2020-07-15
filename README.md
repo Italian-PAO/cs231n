@@ -30,6 +30,10 @@
 
 + **LSTM**
 
++ **Network Visualization**
+
++ **Style Transfer**
+
 ---
 
 >The raw code is from https://github.com/cs231n/cs231n.github.io
