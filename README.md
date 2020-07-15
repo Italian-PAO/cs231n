@@ -24,7 +24,11 @@
 
 + **PyTorch / TensorFlow on CIFAR-10**
 
-## Assignment3 Finished (ONDING)
+## Assignment3 Finished (ONDOING)
+
++ **Vanilla RNN**
+
++ **LSTM**
 
 ---
 
