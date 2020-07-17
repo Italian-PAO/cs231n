@@ -34,6 +34,8 @@
 
 + **Style Transfer**
 
++ **GANs**
+
 ---
 
 >The raw code is from https://github.com/cs231n/cs231n.github.io
