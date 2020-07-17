@@ -24,7 +24,7 @@
 
 + **PyTorch / TensorFlow on CIFAR-10**
 
-## Assignment3 Finished (ONDOING)
+## Assignment3 Finished (ALL FINISHED)
 
 + **Vanilla RNN**
 
